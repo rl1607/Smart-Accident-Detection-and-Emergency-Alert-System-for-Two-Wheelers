@@ -11,19 +11,44 @@ An intelligent, IoT-enabled motorcycle and vehicle safety system designed to aut
 ---
 
 ## 📌 Table of Contents
+- [Hardware Prototype Device](#-hardware-prototype-device)
+- [Android Mobile Application](#-android-mobile-application)
 - [System Architecture](#-system-architecture)
 - [Key Features](#-key-features)
 - [Hardware Components & Pinout](#-hardware-components--pinout)
 - [Repository Structure](#-repository-structure)
 - [Prerequisites & Libraries](#-prerequisites--libraries)
-- [Setup & Installation Guide](#-setup--installation-guide)
-  - [1. ESP32 Firmware Setup](#1-esp32-firmware-setup)
-  - [2. Cloud Database (Supabase) Setup](#2-cloud-database-supabase-setup)
-  - [3. Android Mobile Application Setup](#3-android-mobile-application-setup)
-  - [4. Optional Node.js Gateway](#4-optional-nodejs-gateway)
 - [Security & Environment Variables](#-security--environment-variables)
-- [How to Upload / Push to GitHub](#-how-to-upload--push-to-github)
 - [License](#-license)
+
+---
+
+## 🛠 Hardware Prototype Device
+
+The embedded hardware unit is powered by an ESP32 microcontroller integrated with motion and cellular positioning modules on a compact, portable veroboard chassis:
+
+<p align="center">
+  <img src="docs/images/hardware_prototype.jpg" width="450" alt="Hardware Prototype Device" />
+</p>
+
+### Highlighted Onboard Modules:
+- **ESP32 Dev Module**: Dual-core processor handling sensor fusion, tilt computation, and telemetry dispatch.
+- **MPU-6050 6-Axis IMU**: Real-time 3D spherical tilt angle tracking (>45°) and impact detection (>5.0g).
+- **SIM800L GSM/GPRS**: 2G cellular transceiver with 2200µF buffer capacitor for automated emergency SMS, voice calls, and GPRS cloud transmission.
+- **NEO-6M GPS Module**: Dedicated ceramic patch antenna for high-accuracy latitude, longitude, and speed tracking.
+- **18650 Li-ion Battery (3.7V / 2000mAh)**: Autonomous, high-drain mobile power supply.
+- **Emergency Cancel Push Button**: Momentary tactile button allowing the rider to abort false alarms within a 15-second grace period.
+
+---
+
+## 📱 Android Mobile Application
+
+The companion Android application is built with **Jetpack Compose** and **Material Design 3**, communicating directly with Supabase Cloud for live telemetry and alert management:
+
+| Dashboard | Live Vehicle Tracking | Accident Alerts & History | Emergency Contacts |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/app_dashboard.jpg" width="220" alt="Dashboard Screen"/> | <img src="docs/images/app_live_tracking.jpg" width="220" alt="Live Vehicle Tracking Screen"/> | <img src="docs/images/app_incident_alerts.jpg" width="220" alt="Accident Incident Alerts Screen"/> | <img src="docs/images/app_emergency_contacts.jpg" width="220" alt="Emergency Contacts Screen"/> |
+| **Real-time Telemetry & Status**<br>Speed, distance, satellite count, and connectivity state. | **Interactive GPS Map**<br>Google Maps route polyline, live vehicle pin, and speed tracking. | **Crash & Fall Audit Log**<br>Impact force, tilt angle, and Rider Safe button cancellation records. | **Cloud-Synced Contacts**<br>Primary emergency numbers synchronized with ESP32 NVS memory. |
 
 ---
 
@@ -127,6 +152,8 @@ SmartAccidentDetection/
 │   ├── server.js                        # Express HTTP server
 │   ├── supabaseClient.js                # Supabase REST client
 │   └── package.json                     # Node dependencies
+├── docs/                                # Visual Documentation & Media
+│   └── images/                          # Hardware prototype & Android UI screenshots
 ├── firmware/                            # Embedded C++ Firmware
 │   ├── smart_accident_firmware/
 │   │   └── smart_accident_firmware.ino  # Main ESP32 production firmware
@@ -155,84 +182,6 @@ SmartAccidentDetection/
 
 ---
 
-## 🚀 Setup & Installation Guide
-
-### 1. ESP32 Firmware Setup
-1. Open Arduino IDE and install the **ESP32 by Espressif Systems** board package.
-2. Install **TinyGPSPlus** via Library Manager (`Sketch` -> `Include Library` -> `Manage Libraries...`).
-3. Open `firmware/smart_accident_firmware/smart_accident_firmware.ino`.
-4. Configure your credentials at the top of the file:
-   ```cpp
-   #define ENABLE_WIFI true              // Set to true for Wi-Fi or false for 100% SIM800 GPRS
-   const char* WIFI_SSID = "YOUR_WIFI_SSID";
-   const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
-   const char* DEFAULT_PHONE = "+91XXXXXXXXXX"; // Your emergency mobile number
-   const char* SUPABASE_URL = "https://your-project.supabase.co";
-   const char* SUPABASE_KEY = "your-supabase-api-key";
-   ```
-5. Select **ESP32 Dev Module** under `Tools` -> `Board`.
-6. Select your USB COM Port and click **Upload**.
-
----
-
-### 2. Cloud Database (Supabase) Setup
-Create the following PostgreSQL tables in your Supabase project:
-
-```sql
--- 1. Locations Table (Live GPS Tracking)
-CREATE TABLE locations (
-    id BIGSERIAL PRIMARY KEY,
-    device_id TEXT NOT NULL,
-    latitude DOUBLE PRECISION NOT NULL,
-    longitude DOUBLE PRECISION NOT NULL,
-    speed_kmh REAL DEFAULT 0.0,
-    source TEXT DEFAULT 'GPS',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 2. Accidents Table (Incident Alerts)
-CREATE TABLE accidents (
-    id BIGSERIAL PRIMARY KEY,
-    device_id TEXT NOT NULL,
-    latitude DOUBLE PRECISION NOT NULL,
-    longitude DOUBLE PRECISION NOT NULL,
-    impact_g REAL DEFAULT 0.0,
-    tilt_angle REAL DEFAULT 0.0,
-    status TEXT DEFAULT 'CONFIRMED',
-    source TEXT DEFAULT 'GPS',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Emergency Contacts Table
-CREATE TABLE emergency_contacts (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    phone_number TEXT NOT NULL,
-    relationship TEXT,
-    is_primary BOOLEAN DEFAULT FALSE,
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
----
-
-### 3. Android Mobile Application Setup
-1. Open the project folder in **Android Studio**.
-2. Copy `local.properties.example` to `local.properties`:
-   ```properties
-   sdk.dir=C\:\\Users\\<YourUsername>\\AppData\\Local\\Android\\Sdk
-   MAPS_API_KEY=AIzaSyYourActualGoogleMapsApiKeyHere
-   ```
-3. Update `SupabaseClient.kt` in `app/src/main/java/com/example/smartaccidentdetection/data/remote/`:
-   ```kotlin
-   private const val SUPABASE_BASE_URL = "https://your-project.supabase.co/rest/v1/"
-   private const val SUPABASE_API_KEY = "your-supabase-api-key"
-   ```
-4. Click **Sync Project with Gradle Files**.
-5. Connect your Android device or start an emulator and click **Run 'app'**.
-
----
-
 ## 🔒 Security & Environment Variables
 
 > [!WARNING]
@@ -240,38 +189,6 @@ CREATE TABLE emergency_contacts (
 > 1. **Do not commit personal phone numbers or Wi-Fi passwords** in `smart_accident_firmware.ino`. Replace them with placeholders (e.g. `"YOUR_WIFI_PASSWORD"`).
 > 2. **Never commit `local.properties`** or `backend/.env` (both are already protected in `.gitignore`).
 > 3. Use restricted Supabase Anon keys rather than full admin service role keys in mobile and embedded clients.
-
----
-
-## 📤 How to Upload / Push to GitHub
-
-Follow these steps from your terminal inside the project folder:
-
-```bash
-# 1. Navigate to the project root directory
-cd c:\Users\rloka\AndroidStudioProjects\SmartAccidentDetection
-
-# 2. Initialize Git inside this project folder
-git init
-
-# 3. Verify .gitignore is active and check files to be committed
-git status
-
-# 4. Stage all project files
-git add .
-
-# 5. Commit the files
-git commit -m "Initial commit: Smart Accident Detection System (Firmware + Android App + Backend)"
-
-# 6. Set default branch to main
-git branch -M main
-
-# 7. Add your GitHub repository remote
-git remote add origin https://github.com/<your-username>/<your-repository-name>.git
-
-# 8. Push to GitHub
-git push -u origin main
-```
 
 ---
 
