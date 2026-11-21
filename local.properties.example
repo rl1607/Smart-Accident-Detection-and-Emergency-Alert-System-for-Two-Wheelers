@@ -1,0 +1,9 @@
+## Local configuration template for Android Studio
+## Copy this file to 'local.properties' and fill in your values.
+## Do NOT commit 'local.properties' to GitHub.
+
+# Path to the Android SDK on your machine (e.g. C:\Users\<Username>\AppData\Local\Android\Sdk)
+sdk.dir=C\:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk
+
+# Google Maps API Key for Live Tracking & Location Rendering
+MAPS_API_KEY=AIzaSyYOUR_GOOGLE_MAPS_API_KEY_HERE

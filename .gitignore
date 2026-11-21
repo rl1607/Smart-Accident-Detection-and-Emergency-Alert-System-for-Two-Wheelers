@@ -1,0 +1,50 @@
+# Built application files
+*.apk
+*.aar
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+app/build/
+/build
+.gradle/
+.kotlin/
+.externalNativeBuild
+.cxx
+captures/
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+/local.properties
+local.properties
+
+# Environment and Secret files
+.env
+backend/.env
+backend/data_store.json
+local_credentials_backup.txt
+
+# Node.js dependencies
+node_modules/
+backend/node_modules/
+
+# Agent / Tooling files
+.agents/
+skills-lock.json
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
